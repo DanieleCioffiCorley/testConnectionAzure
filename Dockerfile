@@ -1,4 +1,4 @@
-FROM nginx:alpine --platform=linux/amd6 --platform=linux/amd644
+FROM nginx:alpine
 
 # Crea l'utente pippo
 RUN addgroup -S pippo && adduser -S pippo -G pippo 

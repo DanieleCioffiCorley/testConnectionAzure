@@ -1,0 +1,36 @@
+version: 0.2
+
+# This buildspec file should be placed in the root of the VG_mehits_iot_gateway repository
+# It builds a Docker image and pushes it to Amazon ECR
+
+phases:
+  pre_build:
+    commands:
+      - echo "Pre-build phase started on $(date)"
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - ECR_REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
+      # - IMAGE_TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+      - echo "ECR Repository URI - $ECR_REPOSITORY_URI"
+      # - echo "Image Timestamp - $IMAGE_TIMESTAMP"
+
+  build:
+    commands:
+      - echo "Build phase started on $(date)"
+      - echo "Building the Docker image..."
+      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $ECR_REPOSITORY_URI:$IMAGE_TAG
+      # - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $ECR_REPOSITORY_URI:$IMAGE_TIMESTAMP
+      - echo "Docker image built successfully"
+
+  post_build:
+    commands:
+      - echo "Post-build phase started on $(date)"
+      - echo "Pushing the Docker images to ECR..."
+      - docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
+      # - docker push $ECR_REPOSITORY_URI:$IMAGE_TIMESTAMP
+      - echo "Docker images pushed to ECR successfully"
+
+cache:
+  paths:
+    - '/root/.docker/**/*'
